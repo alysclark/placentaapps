@@ -28,10 +28,14 @@ min_length =  5.0 #mm
 point_limit =  1
  
 sv_length = 2.0
+
+angle_max_ft =  180 * np.pi /180
+angle_min_ft = 0 * np.pi /180
+fraction_ft =   0.4
+min_length_ft =  0.0 #mm
+point_limit_ft =  1
  
- 
-#datapoints_villi=pg.equispaced_data_in_ellipsoid(n_seed,volume,thickness,ellipticity)
- 
+
 datapoints_chorion=pg.uniform_data_on_ellipsoid(n_chorion,volume,thickness,ellipticity,0)
 pg.export_ex_coords(datapoints_chorion,'chorion','chorion_data','exdata')
  
@@ -44,3 +48,28 @@ chorion_geom=pg.grow_chorionic_surface(angle_max, angle_min, fraction_chorion, m
  
 pg.export_ex_coords(chorion_geom['nodes'],'chorion','chorion_nodes','exnode')
 pg.export_exelem_1d(chorion_geom['elems'],'chorion','chorion_elems')
+
+#Refine once from defined element number 
+from_elem=5
+refined_geom=pg.refine_1D(chorion_geom,from_elem)
+
+pg.export_ex_coords(refined_geom['nodes'],'chorion','chorion_refined','exnode')
+pg.export_exelem_1d(refined_geom['elems'],'chorion','chorion_refined')
+
+#Add stem villi
+chorion_and_stem = pg.add_stem_villi(refined_geom,from_elem,sv_length)
+
+pg.export_ex_coords(chorion_and_stem['nodes'],'chorion','chorion_plus_stem','exnode')
+pg.export_exelem_1d(chorion_and_stem['elems'],'chorion','chorion_plus_stem')
+
+datapoints_villi=pg.equispaced_data_in_ellipsoid(n_seed,volume,thickness,ellipticity)
+pg.export_ex_coords(datapoints_villi,'villous','villous_data','exdata')
+
+
+full_geom=pg.grow_large_tree(angle_max_ft, angle_min_ft, fraction_ft, min_length_ft, point_limit_ft,volume, thickness, ellipticity, datapoints_villi, chorion_and_stem)
+
+
+pg.export_ex_coords(full_geom['nodes'],'placenta','full_tree','exnode')
+pg.export_exelem_1d(full_geom['elems'],'placenta','full_tree')
+
+
